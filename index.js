@@ -1,35 +1,13 @@
-// var express = require('express');
-// var app = express();
-// var server = require('http').Server(app);
-// var io = require('socket.io')(server);
-
-// server.listen(80);
-
-// app.use(express.static('public'));
-
-// io.on('connection', function (socket) {
-//     socket.on('chat-message', function (data) {
-//         io.sockets.emit('chat-message', data);
-//     });
-// });
 'use strict';
 
-const express = require('express');
-const socketIO = require('socket.io');
-// const path = require('path');
-
-const PORT = process.env.PORT || 3000;
-// const INDEX = path.join(__dirname, 'index.html');
-
-// const server = express()
-//     .use((req, res) => res.sendFile(INDEX))
-//     .listen(PORT, () => console.log(`Listening on ${PORT}`));
-
-const server = express()
+var express = require('express');
+var PORT = process.env.PORT || 3000;
+var server = express()
     .use(express.static('public'))
-    .listen(PORT, () => console.log(`Listening on ${PORT}`));;
-
-const io = socketIO(server);
+    .listen(PORT, function () {
+        console.log(`Listening on ${PORT}`)
+    });
+var io = require('socket.io')(server);
 
 io.on('connection', (socket) => {
     socket.on('chat-message', function (data) {
