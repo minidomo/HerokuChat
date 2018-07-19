@@ -1,4 +1,4 @@
-var socket = io('https://socket-io-test-chat.herokuapp.com/');
+var socket = io();
 
 var width = window.innerWidth
     || document.documentElement.clientWidth
