@@ -13,6 +13,8 @@
 //     });
 // });
 
+'use strict';
+
 const express = require('express');
 const socketIO = require('socket.io');
 const path = require('path');
