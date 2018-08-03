@@ -10,12 +10,26 @@
 </head>
 
 <body>
+    <div id="username-page">
+        <div class="outer">
+            <div class="middle">
+                <div class="inner">
+                    <div id="username-box">
+                        <input id="username-input" type="text" placeholder="Nickname" />
+                        <button id="join">Join</button>
+                        <p id="numberofpeople">0 entered</p>
+                    </div>
+                    <div id="error-message"></div>
+                </div>
+            </div>
+        </div>
+    </div>
     <div id="box">
         <div id="window">
             <div id="chat">
             </div>
         </div>
-        <input id="username" type="text" placeholder="Nickname" />
+        <label id="username"></label>
         <input id="message" type="text" placeholder="Message" />
         <button id="send">Send</button>
     </div>

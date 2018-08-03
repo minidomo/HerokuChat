@@ -5,6 +5,7 @@ body {
 }
 
 #box {
+    display: none;
     width: 100%;
     height: 500px;
     font-size: 0;
@@ -31,7 +32,7 @@ p {
     font-size: 16px;
 }
 
-input, button {
+input, button, label {
     margin: 0;
     padding: 0px 0.5% 0px 0.5%;
     font-family: inherit;
@@ -40,6 +41,7 @@ input, button {
     border: none;
     background-color: #1e1e1e;
     outline: none;
+    float: left;
 }
 
 #message {
@@ -55,8 +57,79 @@ input, button {
 }
 
 #send {
-    width: 11%;
+    box-sizing: content-box;
+    width: 10%;
     cursor: pointer;
     background-color: #272727;
     color: #4ec9b0;
+}
+
+#username-page {
+    width: 100%;
+    height: 100%;
+    /* display: none; */
+}
+
+.outer {
+    display: table;
+    position: absolute;
+    height: 100%;
+    width: 100%;
+}
+
+.middle {
+    display: table-cell;
+    vertical-align: middle;
+}
+
+.inner {
+    display: table;
+    margin: 0 auto;
+    width: 15%;
+    height: 14%;
+}
+
+#username-box {
+    background-color: #272727;
+    width: 100%;
+    height: 100%;
+}
+
+#username-input, #join, #numberofpeople {
+    box-sizing: none;
+    padding: 0;
+    width: 100%;
+    height: calc(100% / 3);
+    background-color: inherit;
+    display: block;
+    font-size: large;
+    text-align: center;
+    overflow: hidden;
+}
+
+#username-input {
+    color: #569cd6;
+}
+
+#join {
+    color: #4ec9b0;
+    cursor: pointer;
+}
+
+#numberofpeople {
+    color: #9cdcfe;
+    cursor: default;
+}
+
+#error-message {
+    box-sizing: none;
+    padding: 0;
+    width: 100%;
+    font-size: medium;
+    text-align: center;
+    overflow: hidden;
+    display: none;
+    vertical-align: middle;
+    color: #d16969;
+    cursor: default;
 }
