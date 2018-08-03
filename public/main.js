@@ -1,100 +1,187 @@
-var socket = io();
-var width,
-    height,
-    boxDiv,
-    usernameInput,
-    messageInput,
-    sendButton,
-    atBottom;
+var socket = io.connect('http://localhost');
 
-reset();
+var UserScreen = {
+    width: undefined,
+    heigt: undefined
+};
+
+var CurrentState = {
+    atBottom: false,
+    userJoined: false
+};
+
+var ElementObject = {
+    box: document.getElementById('box'),
+    username: document.getElementById('username'),
+    message: document.getElementById('message'),
+    send: document.getElementById('send')
+};
+
+console.log('Original Res: ' + (window.innerWidth
+    || document.documentElement.clientWidth
+    || document.body.clientWidth) + ' x ' + (window.innerHeight
+        || document.documentElement.clientHeight
+        || document.body.clientHeight));
+
+resetWindowSize();
 
 // functions
-function reset() {
-    width = window.innerWidth
-        || document.documentElement.clientWidth
-        || document.body.clientWidth;
+function resetWindowSize() {
+    UserScreen.width = window.innerWidth || document.documentElement.clientWidth || document.body.clientWidth;
+    UserScreen.height = window.innerHeight || document.documentElement.clientHeight || document.body.clientHeight;
 
-    height = window.innerHeight
-        || document.documentElement.clientHeight
-        || document.body.clientHeight;
+    // console.log(width >= height ? 'width bigger' : 'height bigger');
 
-    // console.log(width + ' ' + height);
+    ElementObject.box.style.height = UserScreen.height + 'px';
 
-    boxDiv = document.getElementById('box');
-    boxDiv.style.height = height + 'px';
+    var UI = {
+        fontHeight: Math.round(UserScreen.height * (UserScreen.width >= UserScreen.height ? .04 : .035)),
+        fontWidth: Math.round(UserScreen.width * (UserScreen.width >= UserScreen.height ? .035 : .04)),
+        fontSize: undefined
+    };
+    UI.fontSize = Math.min(UI.fontHeight, UI.fontWidth);
 
-    usernameInput = document.getElementById('username');
-    messageInput = document.getElementById('message');
-    sendButton = document.getElementById('send');
+    ElementObject.username.style.lineHeight = Math.round(UserScreen.height * .1) + 'px';
+    ElementObject.username.style.fontSize = UI.fontSize + 'px';
+    ElementObject.message.style.fontSize = UI.fontSize + 'px';
+    ElementObject.send.style.fontSize = UI.fontSize + 'px';
 
-    var textHeight = Math.round(height * .04),
-        textWidth = Math.round(width * .035);
+    var pTag = {
+        textBlock: document.getElementsByClassName('text-block'),
+        fontHeight: Math.round(UserScreen.height * (UserScreen.width >= UserScreen.height ? .03 : .025)),
+        fontWidth: Math.round(UserScreen.width * (UserScreen.width >= UserScreen.height ? .025 : .03)),
+        fontSize: undefined
+    };
+    pTag.fontSize = Math.min(pTag.fontHeight, pTag.fontWidth);
 
-    var minFontSize = Math.min(textHeight, textWidth);
+    for (var x = 0; x < pTag.textBlock.length; x++)
+        pTag.textBlock[x].style.fontSize = pTag.fontSize + 'px';
 
-    usernameInput.style.fontSize = minFontSize + 'px';
-    messageInput.style.fontSize = minFontSize + 'px';
-    sendButton.style.fontSize = minFontSize + 'px';
-
-    var textblockHeight = Math.round(height * .03),
-        textblockWidth = Math.round(width * .025);
-
-    var mintextblockFontSize = Math.min(textblockHeight, textblockWidth);
-
-    var pElements = document.getElementsByClassName('text-block');
-    for (var x = 0; x < pElements.length; x++) {
-        pElements[x].style.fontSize = mintextblockFontSize + 'px';
-    }
-
-    if (atBottom) {
+    if (CurrentState.atBottom) {
         var chat = document.getElementById('chat');
         chat.scrollTop = chat.scrollHeight;
     }
 }
 
 function sendMessage() {
-    var user = usernameInput.value,
-        msg = messageInput.value;
+    var user = ElementObject.username.textContent.trim(),
+        msg = ElementObject.message.value.trim();
 
-    if (user.match('\\w') === null || msg === '')
+    if (msg === '' || !CurrentState.userJoined)
         return;
 
-    user = user.trim();
+    if (msg.startsWith('/')) {
+        socket.emit('chat-command', {
+            username: user,
+            message: msg
+        });
+        ElementObject.message.value = '';
+        return;
+    }
 
-    socket.emit('chat-message', {
+    socket.emit('chat-userMessage', {
         username: user,
         message: msg
     });
-    messageInput.value = '';
+    ElementObject.message.value = '';
+}
+
+// TODO make better
+function updateChat(data) {
+    if (!CurrentState.userJoined)
+        return;
+
+    var Chat = {
+        element: document.getElementById('chat'),
+        fontHeight: Math.round(UserScreen.height * (UserScreen.width >= UserScreen.height ? .03 : .025)),
+        fontWidth: Math.round(UserScreen.width * (UserScreen.width >= UserScreen.height ? .025 : .03)),
+        fontSize: undefined
+    };
+    Chat.fontSize = Math.min(Chat.fontHeight, Chat.fontWidth);
+
+    // https://stackoverflow.com/questions/5086401/how-do-you-detect-when-youre-near-the-bottom-of-the-screen-with-jquery
+    CurrentState.atBottom = 5 > Math.abs(Chat.element.scrollTop - (Chat.element.scrollHeight - Chat.element.offsetHeight));
+    // console.log(Chat.element.scrollTop + ' ' + (Chat.element.scrollHeight - Chat.element.offsetHeight));
+
+    var TimeStamp = {
+        date: new Date(),
+        hours: undefined,
+        mins: undefined,
+        time: undefined
+    };
+    TimeStamp.hours = TimeStamp.date.getHours();
+    TimeStamp.mins = TimeStamp.date.getMinutes();
+    TimeStamp.time = (TimeStamp.hours < 10 ? '0' : '') + TimeStamp.hours + ':' + (TimeStamp.mins < 10 ? '0' : '') + TimeStamp.mins;
+
+    if (data.type === 'user-chat') {
+        Chat.element.innerHTML += StringFormat(data.format, [Chat.fontSize, TimeStamp.time, data.username, data.message]);
+    } else if (data.type === 'server-userConnected') {
+        Chat.element.innerHTML += StringFormat(data.format, [Chat.fontSize, TimeStamp.time, data.username]);
+    } else if (data.type === 'server-userDisconnected') {
+        Chat.element.innerHTML += StringFormat(data.format, [Chat.fontSize, TimeStamp.time, data.username]);
+    } else if (data.type === 'command') {
+        Chat.element.innerHTML += data.format.split('%s').join('' + Chat.fontSize);
+    } else {
+        return;
+    }
+
+    // doesnt work on Edge TODO
+    if (CurrentState.atBottom)
+        Chat.element.scrollTop = Chat.element.scrollHeight;
+}
+
+function StringFormat(string, args) {
+    for (var str = string.indexOf('%s'), index = 0; str !== -1 && index < args.length; str = string.indexOf('%s'), index++) {
+        string = string.replace(string.substr(str, 2), args[index]);
+    }
+    return string;
 }
 
 // event listeners
 window.addEventListener('resize', function () {
-    reset();
+    resetWindowSize();
 });
 
-sendButton.addEventListener('click', function () {
-    var user = usernameInput.value,
-        msg = messageInput.value;
+ElementObject.send.addEventListener('click', function () {
     sendMessage();
 });
 
-messageInput.addEventListener('keypress', function (e) {
-    if (e.key === 'Enter') {
+ElementObject.message.addEventListener('keypress', function (e) {
+    if (e.key === 'Enter')
         sendMessage();
+});
+
+document.getElementById('join').addEventListener('click', function () {
+    var name = document.getElementById('username-input').value.trim();
+    socket.emit('join-request', name);
+});
+
+
+// socket event listeners
+socket.on('chat-message', function (data) {
+    updateChat(data);
+});
+
+socket.on('chat-numberchange', function (data) {
+    var ele = document.getElementById('numberofpeople')
+    if (ele !== null) {
+        ele.textContent = data.number + ' entered';
+    } else {
+        updateChat(data);
     }
 });
 
-socket.on('chat-message', function (data) {
-    var chat = document.getElementById('chat'),
-        fontSize = 'font-size:' + Math.min(Math.round(height * .03), Math.round(width * .025)) + 'px;';
-    atBottom = chat.scrollTop === (chat.scrollHeight - chat.offsetHeight);
-    var date = new Date();
-    var hours = date.getHours(),
-        mins = date.getMinutes();
-    var time = (hours < 10 ? '0' : '') + hours + ':' + (mins < 10 ? '0' : '') + mins;
-    chat.innerHTML += '<p class="text-block" style="' + fontSize + '"><span style="color:gray;">' + time + '</span> <b style="color:#569cd6;">' + data.username + ':</b><span style="color:#ce9178;"> ' + data.message + '</span></p>';
-    if (atBottom)
-        chat.scrollTop = chat.scrollHeight;
+socket.on('join-valid', function (data) {
+    var username = data.username;
+    CurrentState.userJoined = true;
+    ElementObject.username.textContent = username;
+    document.getElementById('box').style.display = 'block';
+    document.body.removeChild(document.getElementById('username-page'));
+});
+
+socket.on('join-invalid', function (data) {
+    // show error msg on screen
+    var div = document.getElementById('error-message');
+    div.style.display = 'block';
+    div.textContent = data.message;
 });
