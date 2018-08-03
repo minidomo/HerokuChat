@@ -1,4 +1,4 @@
-var socket = io.connect('http://localhost');
+var socket = io();
 
 var UserScreen = {
     width: undefined,
