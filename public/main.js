@@ -2,7 +2,7 @@ var socket = io();
 
 var UserScreen = {
     width: undefined,
-    heigt: undefined
+    height: undefined
 };
 
 var CurrentState = {
@@ -31,6 +31,28 @@ function resetWindowSize() {
     UserScreen.height = window.innerHeight || document.documentElement.clientHeight || document.body.clientHeight;
 
     // console.log(width >= height ? 'width bigger' : 'height bigger');
+
+    if (document.getElementById('username-page') !== null) {
+        var Start = {
+            fontHeight: Math.round(UserScreen.height * (UserScreen.width >= UserScreen.height ? 2 / 109 : 16 / 981)),
+            fontWidth: Math.round(UserScreen.width * (UserScreen.width >= UserScreen.height ? 3 / 320 : 16 / 561)),
+            fontSize: undefined
+        };
+        Start.fontSize = Math.max(Start.fontHeight, Start.fontWidth);
+
+        document.getElementById('username-input').style.fontSize = Start.fontSize + 'px';
+        document.getElementById('join').style.fontSize = Start.fontSize + 'px';
+        document.getElementById('numberofpeople').style.fontSize = Start.fontSize + 'px';
+
+        var Error = {
+            fontHeight: Math.round(UserScreen.height * (UserScreen.width >= UserScreen.height ? 16 / 981 : 14 / 981)),
+            fontWidth: Math.round(UserScreen.width * (UserScreen.width >= UserScreen.height ? 1 / 120 : 14 / 561)),
+            fontSize: undefined
+        };
+        Error.fontSize = Math.max(Error.fontHeight, Error.fontWidth);
+
+        document.getElementById('error-message').style.fontSize = Error.fontSize + 'px';
+    }
 
     ElementObject.box.style.height = UserScreen.height + 'px';
 
@@ -86,7 +108,6 @@ function sendMessage() {
     ElementObject.message.value = '';
 }
 
-// TODO make better
 function updateChat(data) {
     if (!CurrentState.userJoined)
         return;
@@ -125,7 +146,6 @@ function updateChat(data) {
         return;
     }
 
-    // doesnt work on Edge TODO
     if (CurrentState.atBottom)
         Chat.element.scrollTop = Chat.element.scrollHeight;
 }
