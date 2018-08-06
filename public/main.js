@@ -176,6 +176,13 @@ document.getElementById('join').addEventListener('click', function () {
     socket.emit('join-request', name);
 });
 
+document.getElementById('username-input').addEventListener('keypress', function (e) {
+    if (e.key === 'Enter') {
+        var name = document.getElementById('username-input').value.trim();
+        socket.emit('join-request', name);
+    }
+});
+
 
 // socket event listeners
 socket.on('chat-message', function (data) {
