@@ -110,7 +110,6 @@ io.on('connection', function (socket) {
     });
 
     socket.on('chat-command', function (data) {
-        // finish this TODO
         var command = data.message.split(' ')[0];
         if (typeof Commands[command] === "undefined") {
             data['type'] = 'user-chat';
@@ -125,7 +124,7 @@ io.on('connection', function (socket) {
 
     socket.on('join-request', function (name) {
         // https://stackoverflow.com/questions/10058226/send-response-to-all-clients-except-sender
-        if (usersInChat.indexOf(name) === -1 && name.match('[a-zA-Z]') !== null && name.length <= 20) {
+        if (usersInChat.indexOf(name) === -1 && name.match('[a-zA-Z]') !== null && name.length <= 20 && name.indexOf(' ') === -1) {
             // add username to the array usersInChat to prevent a duplicate username
             // add the user's socket id to the users object with their username attached to keep track of it
             // send message to everyone, that a new user has joined the chatroom
@@ -152,6 +151,8 @@ io.on('connection', function (socket) {
                 msg = 'Username must have letters';
             else if (name.length > 20)
                 msg = 'Username is too long (must be within 20 characters)';
+            else if (name.indexOf(' ') >= 0)
+                msg = 'Username cannot have spaces';
             else
                 msg = 'Username error unaccounted for';
 
