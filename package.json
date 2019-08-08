@@ -1,19 +1,28 @@
 {
-  "name": "socket_io_test",
+  "name": "herokuchat",
   "version": "1.0.0",
   "engines": {
-    "node": "8.11.3"
+    "node": "10.16.1"
   },
-  "description": "",
+  "description": "My first little project with [Node.js](https://nodejs.org/en/) and [Socket.io](https://socket.io/)",
   "main": "index.js",
   "scripts": {
-    "start": "node index.js"
+    "start": "node ."
   },
   "keywords": [],
-  "author": "",
+  "author": "JB Ladera (https://github.com/minidomo)",
   "license": "Unlicense",
   "dependencies": {
-    "express": "4.16.3",
-    "socket.io": "2.1.1"
-  }
+    "express": "^4.17.1",
+    "socket.io": "^2.2.0"
+  },
+  "devDependencies": {},
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/MiniDomo/HerokuChat.git"
+  },
+  "bugs": {
+    "url": "https://github.com/MiniDomo/HerokuChat/issues"
+  },
+  "homepage": "https://github.com/MiniDomo/HerokuChat#readme"
 }
