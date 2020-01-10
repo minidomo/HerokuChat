@@ -5,7 +5,7 @@
     "node": "10.16.1"
   },
   "description": "My first little project with [Node.js](https://nodejs.org/en/) and [Socket.io](https://socket.io/)",
-  "main": "index.js",
+  "main": "./src/index.js",
   "scripts": {
     "start": "node ."
   },

@@ -133,3 +133,7 @@ input, button, label {
     color: #d16969;
     cursor: default;
 }
+
+a {
+    color: gray;
+}

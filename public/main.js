@@ -1,74 +1,73 @@
-var socket = io();
+const socket = io();
 
-var UserScreen = {
+const UserScreen = {
     width: undefined,
     height: undefined
 };
 
-var CurrentState = {
+const UserState = {
     atBottom: false,
-    userJoined: false
+    userJoined: false,
+    unreadMessages: 0
+}
+
+const Elements = {
+    Box: document.getElementById('box'),
+    Username: document.getElementById('username'),
+    Message: document.getElementById('message'),
+    Send: document.getElementById('send'),
+    Chat: document.getElementById('chat')
 };
 
-var ElementObject = {
-    box: document.getElementById('box'),
-    username: document.getElementById('username'),
-    message: document.getElementById('message'),
-    send: document.getElementById('send')
-};
+// https://stackoverflow.com/questions/610406/javascript-printf-string-format/4673436#4673436
+if (!String.prototype.format) {
+    String.prototype.format = function () {
+        const args = arguments;
+        return this.replace(/{(\d+)}/g, function (match, number) {
+            return typeof args[number] != 'undefined' ? args[number] : match;
+        });
+    };
+}
 
-console.log('Original Res: ' + (window.innerWidth
-    || document.documentElement.clientWidth
-    || document.body.clientWidth) + ' x ' + (window.innerHeight
-        || document.documentElement.clientHeight
-        || document.body.clientHeight));
-
-resetWindowSize();
-
-// functions
-function resetWindowSize() {
+const resetWindowSize = () => {
     UserScreen.width = window.innerWidth || document.documentElement.clientWidth || document.body.clientWidth;
     UserScreen.height = window.innerHeight || document.documentElement.clientHeight || document.body.clientHeight;
 
-    // console.log(width >= height ? 'width bigger' : 'height bigger');
-
     if (document.getElementById('username-page') !== null) {
-        var Start = {
+        const StartMenu = {
             fontHeight: Math.round(UserScreen.height * (UserScreen.width >= UserScreen.height ? 2 / 109 : 16 / 981)),
             fontWidth: Math.round(UserScreen.width * (UserScreen.width >= UserScreen.height ? 3 / 320 : 16 / 561)),
             fontSize: undefined
         };
-        Start.fontSize = Math.max(Start.fontHeight, Start.fontWidth);
+        StartMenu.fontSize = Math.max(StartMenu.fontHeight, StartMenu.fontWidth);
+        document.getElementById('username-input').style.fontSize = StartMenu.fontSize + 'px';
+        document.getElementById('join').style.fontSize = StartMenu.fontSize + 'px';
+        document.getElementById('numberofpeople').style.fontSize = StartMenu.fontSize + 'px';
 
-        document.getElementById('username-input').style.fontSize = Start.fontSize + 'px';
-        document.getElementById('join').style.fontSize = Start.fontSize + 'px';
-        document.getElementById('numberofpeople').style.fontSize = Start.fontSize + 'px';
-
-        var Error = {
+        const ErrorMessage = {
             fontHeight: Math.round(UserScreen.height * (UserScreen.width >= UserScreen.height ? 16 / 981 : 14 / 981)),
             fontWidth: Math.round(UserScreen.width * (UserScreen.width >= UserScreen.height ? 1 / 120 : 14 / 561)),
             fontSize: undefined
         };
-        Error.fontSize = Math.max(Error.fontHeight, Error.fontWidth);
-
-        document.getElementById('error-message').style.fontSize = Error.fontSize + 'px';
+        ErrorMessage.fontSize = Math.max(ErrorMessage.fontHeight, ErrorMessage.fontWidth);
+        document.getElementById('error-message').style.fontSize = ErrorMessage.fontSize + 'px';
     }
 
-    ElementObject.box.style.height = UserScreen.height + 'px';
+    Elements.Box.style.height = UserScreen.height + 'px';
 
-    var UI = {
+    const UI = {
         fontHeight: Math.round(UserScreen.height * (UserScreen.width >= UserScreen.height ? .04 : .035)),
         fontWidth: Math.round(UserScreen.width * (UserScreen.width >= UserScreen.height ? .035 : .04)),
         fontSize: undefined
     };
     UI.fontSize = Math.min(UI.fontHeight, UI.fontWidth);
 
-    ElementObject.username.style.lineHeight = Math.round(UserScreen.height * .1) + 'px';
-    ElementObject.username.style.fontSize = UI.fontSize + 'px';
-    ElementObject.message.style.fontSize = UI.fontSize + 'px';
-    ElementObject.send.style.fontSize = UI.fontSize + 'px';
+    Elements.Username.style.lineHeight = Math.round(UserScreen.height * .1) + 'px';
+    Elements.Username.style.fontSize = UI.fontSize + 'px';
+    Elements.Message.style.fontSize = UI.fontSize + 'px';
+    Elements.Send.style.fontSize = UI.fontSize + 'px';
 
-    var pTag = {
+    const pTag = {
         textBlock: document.getElementsByClassName('text-block'),
         fontHeight: Math.round(UserScreen.height * (UserScreen.width >= UserScreen.height ? .03 : .025)),
         fontWidth: Math.round(UserScreen.width * (UserScreen.width >= UserScreen.height ? .025 : .03)),
@@ -76,139 +75,68 @@ function resetWindowSize() {
     };
     pTag.fontSize = Math.min(pTag.fontHeight, pTag.fontWidth);
 
-    for (var x = 0; x < pTag.textBlock.length; x++)
+    for (let x = 0; x < pTag.textBlock.length; x++)
         pTag.textBlock[x].style.fontSize = pTag.fontSize + 'px';
 
-    if (CurrentState.atBottom) {
-        var chat = document.getElementById('chat');
+    if (UserState.atBottom) {
+        const chat = document.getElementById('chat');
         chat.scrollTop = chat.scrollHeight;
     }
-}
+};
 
-function sendMessage() {
-    var user = ElementObject.username.textContent.trim(),
-        msg = ElementObject.message.value.trim();
+const getMessage = () => {
+    return Elements.Message.value.trim();
+};
 
-    if (msg === '' || !CurrentState.userJoined)
-        return;
+const getUsername = () => {
+    return Elements.Username.textContent.trim();
+};
 
-    if (msg.startsWith('/')) {
-        socket.emit('chat-command', {
-            username: user,
-            message: msg
-        });
-        ElementObject.message.value = '';
-        return;
-    }
-
-    socket.emit('chat-userMessage', {
-        username: user,
-        message: msg
-    });
-    ElementObject.message.value = '';
-}
-
-function updateChat(data) {
-    if (!CurrentState.userJoined)
-        return;
-
-    var Chat = {
-        element: document.getElementById('chat'),
-        fontHeight: Math.round(UserScreen.height * (UserScreen.width >= UserScreen.height ? .03 : .025)),
-        fontWidth: Math.round(UserScreen.width * (UserScreen.width >= UserScreen.height ? .025 : .03)),
-        fontSize: undefined
-    };
-    Chat.fontSize = Math.min(Chat.fontHeight, Chat.fontWidth);
-
-    // https://stackoverflow.com/questions/5086401/how-do-you-detect-when-youre-near-the-bottom-of-the-screen-with-jquery
-    CurrentState.atBottom = 5 > Math.abs(Chat.element.scrollTop - (Chat.element.scrollHeight - Chat.element.offsetHeight));
-    // console.log(Chat.element.scrollTop + ' ' + (Chat.element.scrollHeight - Chat.element.offsetHeight));
-
-    var TimeStamp = {
+const getTimestamp = () => {
+    const timestamp = {
         date: new Date(),
         hours: undefined,
         mins: undefined,
         time: undefined
     };
-    TimeStamp.hours = TimeStamp.date.getHours();
-    TimeStamp.mins = TimeStamp.date.getMinutes();
-    TimeStamp.time = (TimeStamp.hours < 10 ? '0' : '') + TimeStamp.hours + ':' + (TimeStamp.mins < 10 ? '0' : '') + TimeStamp.mins;
+    timestamp.hours = timestamp.date.getHours();
+    timestamp.mins = timestamp.date.getMinutes();
+    timestamp.time = (timestamp.hours < 10 ? '0' : '') + timestamp.hours + ':' + (timestamp.mins < 10 ? '0' : '') + timestamp.mins;
+    return timestamp;
+};
 
-    if (data.type === 'user-chat') {
-        Chat.element.innerHTML += StringFormat(data.format, [Chat.fontSize, TimeStamp.time, data.username, data.message]);
-    } else if (data.type === 'server-userConnected') {
-        Chat.element.innerHTML += StringFormat(data.format, [Chat.fontSize, TimeStamp.time, data.username]);
-    } else if (data.type === 'server-userDisconnected') {
-        Chat.element.innerHTML += StringFormat(data.format, [Chat.fontSize, TimeStamp.time, data.username]);
-    } else if (data.type === 'command') {
-        Chat.element.innerHTML += data.format.split('%s').join('' + Chat.fontSize);
-    } else {
-        return;
-    }
+const getChatFontSize = () => {
+    const fontHeight = Math.round(UserScreen.height * (UserScreen.width >= UserScreen.height ? .03 : .025));
+    const fontWidth = Math.round(UserScreen.width * (UserScreen.width >= UserScreen.height ? .025 : .03));
+    const fontSize = Math.min(fontHeight, fontWidth);
+    return fontSize;
+};
 
-    if (CurrentState.atBottom)
-        Chat.element.scrollTop = Chat.element.scrollHeight;
-}
+const updateChat = (html) => {
+    // https://stackoverflow.com/questions/5086401/how-do-you-detect-when-youre-near-the-bottom-of-the-screen-with-jquery
+    UserState.atBottom = 5 > Math.abs(Elements.Chat.scrollTop - (Elements.Chat.scrollHeight - Elements.Chat.offsetHeight));
+    Elements.Chat.innerHTML += html;
+    if (UserState.atBottom)
+        Elements.Chat.scrollTop = Elements.Chat.scrollHeight;
+};
 
-function StringFormat(string, args) {
-    for (var str = string.indexOf('%s'), index = 0; str !== -1 && index < args.length; str = string.indexOf('%s'), index++) {
-        string = string.replace(string.substr(str, 2), args[index]);
-    }
-    return string;
-}
+// https://stackoverflow.com/a/7124052
+const htmlEncode = (value) => {
+    return value
+        .replace(/&/g, '&amp;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;');
+};
 
-// event listeners
-window.addEventListener('resize', function () {
-    resetWindowSize();
-});
+// https://stackoverflow.com/a/1500501
+const urlify = (text) => {
+    var urlRegex = /(https?:\/\/[^\s]+)/g;
+    return text.replace(urlRegex, function (url) {
+        // https://stackoverflow.com/a/17711167
+        return `<a href="${url}" target="_blank" rel="noopener noreferrer">${url}</a>`;
+    });
+};
 
-ElementObject.send.addEventListener('click', function () {
-    sendMessage();
-});
-
-ElementObject.message.addEventListener('keypress', function (e) {
-    if (e.key === 'Enter')
-        sendMessage();
-});
-
-document.getElementById('join').addEventListener('click', function () {
-    var name = document.getElementById('username-input').value.trim();
-    socket.emit('join-request', name);
-});
-
-document.getElementById('username-input').addEventListener('keypress', function (e) {
-    if (e.key === 'Enter') {
-        var name = document.getElementById('username-input').value.trim();
-        socket.emit('join-request', name);
-    }
-});
-
-
-// socket event listeners
-socket.on('chat-message', function (data) {
-    updateChat(data);
-});
-
-socket.on('chat-numberchange', function (data) {
-    var ele = document.getElementById('numberofpeople')
-    if (ele !== null) {
-        ele.textContent = data.number + ' entered';
-    } else {
-        updateChat(data);
-    }
-});
-
-socket.on('join-valid', function (data) {
-    var username = data.username;
-    CurrentState.userJoined = true;
-    ElementObject.username.textContent = username;
-    document.getElementById('box').style.display = 'block';
-    document.body.removeChild(document.getElementById('username-page'));
-});
-
-socket.on('join-invalid', function (data) {
-    // show error msg on screen
-    var div = document.getElementById('error-message');
-    div.style.display = 'block';
-    div.textContent = data.message;
-});
+resetWindowSize();
