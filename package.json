@@ -13,7 +13,7 @@
   "author": "JB Ladera (https://github.com/minidomo)",
   "license": "Unlicense",
   "dependencies": {
-    "express": "^4.17.1",
+    "express": "^4.19.2",
     "socket.io": "^2.2.0"
   },
   "devDependencies": {},
